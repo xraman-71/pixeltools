@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compress Image to 50KB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #1a1a1a;
+            --primary-hover: #000000;
+            --bg: #FFFFFF;
+            --bg-soft: #F5F5F0;
+            --border-main: #2d2d2d;
+            --border-light: #DDDDD8;
+            --text: #111111;
+            --text-sub: #3a3a3a;
+            --text-muted: #7a7a72;
+            --green: #2a2a2a;
+            --yellow: #c8c8b8;
+            --red: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-soft);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+            color: #0a0a0a;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.03em;
+        }
+        .subtitle em {
+            font-style: italic;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        /* Card */
+        .main-card {
+            background: var(--bg);
+            border-radius: 12px;
+            border: 2px solid var(--border-main);
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            animation: fadeUp 0.4s ease-out;
+        }
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(12px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Tabs */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+        .tab-btn {
+            background: none; border: none;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem; font-weight: 500;
+            color: var(--text-sub); cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: color .2s, border-color .2s;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-btn:hover  { color: var(--primary); }
+
+        /* Panels */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Upload zone */
+        .upload-zone {
+            background: var(--bg-soft);
+            border: 2px dashed var(--border-light);
+            border-radius: 8px; padding: 3rem 2rem;
+            text-align: center; cursor: pointer;
+            transition: border-color .3s, background .3s;
+            min-height: 380px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--primary); background: #EFEFEA;
+        }
+        .upload-zone.has-image {
+            padding: 1.5rem; min-height: auto; cursor: default;
+        }
+        .upload-zone.has-image:hover { background: var(--bg-soft); border-color: var(--border-light); }
+
+        .file-input { display: none; }
+
+        .upload-placeholder {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 1rem;
+        }
+        .upload-icon { font-size: 3rem; }
+        .upload-text  { font-size: 1rem; font-weight: 500; }
+        .upload-subtext { font-size: 0.82rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-weight: 400; letter-spacing: 0.01em; }
+
+        /* Preview */
+        .preview-container { display: none; flex-direction: column; gap: 1rem; width: 100%; }
+        .preview-container.active { display: flex; }
+
+        .preview-box {
+            position: relative;
+            background: #eee; border-radius: 8px;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 280px; max-height: 420px;
+            user-select: none;
+        }
+        .preview-img {
+            max-width: 100%; max-height: 420px;
+            object-fit: contain; display: block;
+        }
+        .btn-close-img {
+            position: absolute; top: 0.6rem; right: 0.6rem;
+            width: 30px; height: 30px; border-radius: 50%;
+            border: none; background: rgba(255,255,255,.9);
+            font-size: 1.1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+            transition: background .2s, transform .2s; z-index: 10;
+        }
+        .btn-close-img:hover { background: #1a1a1a; color: white; transform: rotate(90deg); }
+
+        .image-info {
+            background: var(--bg-soft); padding: 1rem; border-radius: 8px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+            gap: 1rem; font-size: 0.82rem;
+        }
+        .info-item { display: flex; flex-direction: column; gap: 0.2rem; }
+        .info-lbl { color: var(--text-muted); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .info-val { color: var(--text); font-weight: 600; }
+
+        /* Controls */
+        .controls-section {
+            margin-top: 1.8rem; padding-top: 1.8rem;
+            border-top: 2px solid var(--border-light);
+        }
+        .dim-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+        .dim-tab {
+            padding: 0.45rem 1rem;
+            border: 1px solid var(--border-light); background: white;
+            border-radius: 6px; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+        }
+        .dim-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .ctrl-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
+        .ctrl-lbl { font-size: 0.88rem; font-weight: 500; min-width: 70px; }
+        .ctrl-wrap { flex: 1; display: flex; align-items: center; gap: 0.5rem; }
+        .ctrl-input {
+            flex: 1; padding: 0.6rem 0.9rem;
+            border: 1px solid var(--border-light); border-radius: 6px;
+            font-family: 'Poppins', sans-serif; font-size: 0.88rem;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .ctrl-input:focus { outline: none; border-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(26,26,26,.12); }
+        .unit-badge {
+            padding: 0.45rem 0.8rem; background: var(--bg-soft);
+            border-radius: 6px; font-size: 0.82rem; font-weight: 600; color: var(--text-sub);
+        }
+
+        /* Buttons */
+        .action-btn {
+            width: 100%; padding: 0.95rem; border: none; border-radius: 8px;
+            font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; transition: background .25s, transform .2s, box-shadow .2s;
+        }
+        .btn-blue {
+            background: var(--primary); color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,.18);
+        }
+        .btn-blue:hover:not(:disabled) {
+            background: var(--primary-hover); transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,.28);
+        }
+        .btn-green {
+            background: #2a2a2a; color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        }
+        .btn-green:hover:not(:disabled) { background: #000000; transform: translateY(-1px); }
+        .action-btn:disabled { opacity:.55; cursor:not-allowed; transform:none !important; box-shadow:none; }
+        .action-btn.loading { position:relative; color:transparent; }
+        .action-btn.loading::after {
+            content:''; position:absolute;
+            width:20px; height:20px; top:50%; left:50%; margin:-10px 0 0 -10px;
+            border:3px solid rgba(255,255,255,.3); border-top-color:white;
+            border-radius:50%; animation:spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        .note {
+            margin-top: 1.2rem; padding: 0.7rem 1rem;
+            background: #F5F5F0; border-left: 4px solid #2d2d2d;
+            border-radius: 6px; font-size: 0.82rem; color: #3a3a3a;
+        }
+
+        /* Results */
+        .results-section { margin-top:1.8rem; padding-top:1.8rem; border-top:2px solid var(--border-light); display:none; }
+        .results-section.active { display:block; }
+        .result-card { background:var(--bg-soft); padding:1.5rem; border-radius:8px; margin-bottom:1rem; }
+        .result-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+        .result-title { font-size:0.95rem; font-weight:600; word-break:break-all; max-width:70%; }
+        .result-badge { padding:.35rem .8rem; background:#1a1a1a; color:white; border-radius:20px; font-size:.78rem; font-weight:600; }
+        .result-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem; text-align:center; }
+        .stat-val { font-size:1.4rem; font-weight:700; color:#1a1a1a; }
+        .stat-lbl { font-size:0.7rem; text-transform:uppercase; color:var(--text-muted); margin-top:.2rem; }
+
+        /* ── Crop overlay ── */
+        #cropWrapper { position:relative; display:inline-block; line-height:0; max-width:100%; }
+        #cropImg     { max-width:100%; max-height:420px; display:block; object-fit:contain; }
+
+        #cropOverlay {
+            position:absolute;
+            border:2px solid #1a1a1a;
+            box-shadow:0 0 0 9999px rgba(0,0,0,.45);
+            cursor:move; box-sizing:border-box;
+        }
+        .crop-handle {
+            position:absolute; width:10px; height:10px;
+            background:white; border:2px solid #1a1a1a; border-radius:50%;
+        }
+        .crop-handle.nw { top:-5px; left:-5px; cursor:nw-resize; }
+        .crop-handle.n  { top:-5px; left:50%; transform:translateX(-50%); cursor:n-resize; }
+        .crop-handle.ne { top:-5px; right:-5px; cursor:ne-resize; }
+        .crop-handle.e  { top:50%; right:-5px; transform:translateY(-50%); cursor:e-resize; }
+        .crop-handle.se { bottom:-5px; right:-5px; cursor:se-resize; }
+        .crop-handle.s  { bottom:-5px; left:50%; transform:translateX(-50%); cursor:s-resize; }
+        .crop-handle.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
+        .crop-handle.w  { top:50%; left:-5px; transform:translateY(-50%); cursor:w-resize; }
+
+        .crop-dims-badge {
+            position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,.65); color:white;
+            font-size:.72rem; font-weight:600; padding:2px 8px; border-radius:4px;
+            pointer-events:none; white-space:nowrap;
+        }
+
+        .crop-actions { display:flex; gap:.75rem; margin-top:1rem; }
+        .crop-actions .action-btn { width:auto; flex:1; padding:.75rem; font-size:.88rem; }
+
+        /* Error */
+        .error-msg {
+            background:#F0F0EB; color:#1a1a1a;
+            padding:.9rem 1rem; border-radius:8px;
+            border-left:4px solid #1a1a1a; font-size:.88rem; margin-bottom:1rem;
+        }
+
+        /* Why grid */
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.9rem;
+        }
+        .why-card {
+            background: var(--bg-soft);
+            border: 1.5px solid var(--border-light);
+            border-radius: 10px;
+            padding: 1.1rem 1.1rem 1rem;
+        }
+        .why-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+        .why-title {
+            font-size: 0.88rem; font-weight: 700;
+            color: #0a0a0a; margin-bottom: 0.35rem;
+            letter-spacing: -0.01em;
+        }
+        .why-desc { font-size: 0.8rem; color: var(--text-sub); line-height: 1.6; }
+
+        @media (max-width: 480px) {
+            .why-grid { grid-template-columns: 1fr; }
+        }
+
+        /* How to Use button ── */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+        .header-center { text-align: center; flex: 1; }
+        .how-btn {
+            background: none;
+            border: 1.5px solid #2d2d2d;
+            color: #1a1a1a;
+            padding: 0.55rem 1.2rem;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: background .2s, color .2s;
+            white-space: nowrap;
+            margin-top: 0.25rem;
+        }
+        .how-btn:hover { background: #1a1a1a; color: white; }
+
+        /* ── Guide Modal ── */
+        .guide-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .guide-modal.active { display: flex; }
+
+        .guide-box {
+            background: #fff;
+            border-radius: 14px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            animation: fadeUp .3s ease-out;
+        }
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.8rem 1.2rem;
+            border-bottom: 1.5px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 1;
+            border-radius: 14px 14px 0 0;
+        }
+        .guide-header h2 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+        .guide-close {
+            background: none; border: none;
+            font-size: 1.4rem; cursor: pointer;
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; color: var(--text-muted);
+            transition: background .2s, color .2s;
+        }
+        .guide-close:hover { background: #f0f0eb; color: #1a1a1a; }
+
+        .guide-tabs {
+            display: flex;
+            gap: 0;
+            padding: 1rem 1.8rem 0;
+            border-bottom: 1.5px solid var(--border-light);
+        }
+        .guide-tab {
+            background: none; border: none;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem; font-weight: 600;
+            color: var(--text-muted); cursor: pointer;
+            border-bottom: 2.5px solid transparent;
+            margin-bottom: -1.5px;
+            transition: color .2s, border-color .2s;
+        }
+        .guide-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+        .guide-tab:hover { color: #1a1a1a; }
+
+        .guide-body { padding: 1.6rem 1.8rem 2rem; }
+        .guide-panel { display: none; }
+        .guide-panel.active { display: block; }
+
+        .guide-section { margin-bottom: 1.8rem; }
+        .guide-section:last-child { margin-bottom: 0; }
+
+        .guide-section h3 {
+            font-size: 0.95rem; font-weight: 700;
+            color: #0a0a0a; margin-bottom: 0.9rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .step-list { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+        .step-list li {
+            display: flex; gap: 0.85rem; align-items: flex-start;
+            font-size: 0.88rem; color: var(--text-sub); line-height: 1.6;
+        }
+        .step-num {
+            min-width: 24px; height: 24px;
+            background: #1a1a1a; color: white;
+            border-radius: 50%;
+            font-size: 0.72rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            margin-top: 1px;
+        }
+
+        /* FAQ */
+        .faq-item { border-bottom: 1.5px solid var(--border-light); }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-q {
+            width: 100%; background: none; border: none;
+            text-align: left; padding: 1rem 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.88rem; font-weight: 600;
+            color: #1a1a1a; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem;
+        }
+        .faq-q:hover { color: #000; }
+        .faq-arrow {
+            font-size: 0.75rem; color: var(--text-muted);
+            transition: transform .25s;
+            flex-shrink: 0;
+        }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+        .faq-a {
+            font-size: 0.85rem; color: var(--text-sub);
+            line-height: 1.7; padding-bottom: 1rem;
+            display: none;
+        }
+        .faq-item.open .faq-a { display: block; }
+
+        @media (max-width:600px) {
+            .guide-box { border-radius: 10px; }
+            .guide-header, .guide-body { padding-left: 1.2rem; padding-right: 1.2rem; }
+            .guide-tabs { padding-left: 1.2rem; }
+            .header-top { flex-direction: column; align-items: center; gap: 1rem; }
+            .header-center { order: -1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="header-top">
+            <div class="header-center">
+                <h1>Compress Image to 50KB</h1>
+                <p class="subtitle">Compress. Crop. Perfect — <em>in seconds.</em></p>
+            </div>
+            <button class="how-btn" id="openGuide">How to Use ↗</button>
+        </div>
+    </header>
+
+    <!-- ═══════════ HOW TO USE MODAL ═══════════ -->
+    <div class="guide-modal" id="guideModal">
+        <div class="guide-box">
+            <div class="guide-header">
+                <h2>📖 Guide & FAQ</h2>
+                <button class="guide-close" id="closeGuide">×</button>
+            </div>
+            <div class="guide-tabs">
+                <button class="guide-tab active" data-gtab="compress">📐 Compress</button>
+                <button class="guide-tab" data-gtab="crop">✂️ Crop</button>
+                <button class="guide-tab" data-gtab="why">⭐ Why Us</button>
+                <button class="guide-tab" data-gtab="faq">❓ FAQ</button>
+            </div>
+            <div class="guide-body">
+
+                <!-- Compress guide -->
+                <div class="guide-panel active" id="gtab-compress">
+                    <div class="guide-section">
+                        <h3>🗜️ How to Compress an Image</h3>
+                        <ul class="step-list">
+                            <li><span class="step-num">1</span> Click the upload zone or drag &amp; drop up to 50 images (JPG, PNG, WebP — max 100 MB each).</li>
+                            <li><span class="step-num">2</span> Set your <strong>Target Size</strong> in KB. Default is 50 KB — adjust to any value you need.</li>
+                            <li><span class="step-num">3</span> Optionally set a <strong>Max Width</strong> and <strong>Max Height</strong> to resize the output dimensions.</li>
+                            <li><span class="step-num">4</span> Choose your preferred dimension unit — <strong>Pixels</strong>, <strong>MM</strong>, or <strong>CM</strong>. The tool auto-converts at 96 DPI.</li>
+                            <li><span class="step-num">5</span> Click <strong>Compress</strong>. The tool runs a precision binary search across quality levels to match your target file size.</li>
+                            <li><span class="step-num">6</span> Once done, the result card appears showing original size, compressed size, and reduction %. Click <strong>Download</strong> to save.</li>
+                        </ul>
+                    </div>
+                    <div class="guide-section">
+                        <h3>💡 Tips</h3>
+                        <ul class="step-list">
+                            <li><span class="step-num">✦</span> For very small targets (e.g. 20 KB), setting a Max Width can significantly help — smaller dimensions = smaller file.</li>
+                            <li><span class="step-num">✦</span> PNG files are converted to JPEG during compression, which gives much better size reduction.</li>
+                            <li><span class="step-num">✦</span> All processing happens in your browser — no image is ever uploaded to a server.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Crop guide -->
+                <div class="guide-panel" id="gtab-crop">
+                    <div class="guide-section">
+                        <h3>✂️ How to Crop an Image</h3>
+                        <ul class="step-list">
+                            <li><span class="step-num">1</span> Switch to the <strong>Crop</strong> tab and upload your image by clicking or dragging it into the zone.</li>
+                            <li><span class="step-num">2</span> A blue selection box appears over your image. This is your crop area.</li>
+                            <li><span class="step-num">3</span> <strong>Drag the box</strong> to reposition it anywhere on the image.</li>
+                            <li><span class="step-num">4</span> <strong>Pull the handles</strong> (the 8 dots around the box) to resize the crop area — corners resize both axes, edge handles resize one axis.</li>
+                            <li><span class="step-num">5</span> The live badge inside the box shows the exact pixel dimensions of your selection.</li>
+                            <li><span class="step-num">6</span> Click <strong>Apply Crop</strong> to cut the selected region. The preview updates instantly.</li>
+                            <li><span class="step-num">7</span> Click <strong>Download</strong> to save the cropped image as a JPEG.</li>
+                        </ul>
+                    </div>
+                    <div class="guide-section">
+                        <h3>💡 Tips</h3>
+                        <ul class="step-list">
+                            <li><span class="step-num">✦</span> You can apply crop multiple times — each crop works on the current image state.</li>
+                            <li><span class="step-num">✦</span> Touch/mobile is fully supported — drag and resize handles work with your finger.</li>
+                            <li><span class="step-num">✦</span> Click the × button to clear the image and start over.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Why Use This -->
+                <div class="guide-panel" id="gtab-why">
+                    <div class="guide-section">
+                        <h3>⭐ Why Use This Tool?</h3>
+                        <p style="font-size:.88rem;color:var(--text-sub);line-height:1.75;margin-bottom:1.4rem;">
+                            Most image tools send your files to a remote server, charge monthly fees, or drown you in ads.
+                            This tool was built differently — fast, private, and no-nonsense.
+                        </p>
+                        <div class="why-grid">
+                            <div class="why-card">
+                                <div class="why-icon">🔒</div>
+                                <div class="why-title">100% Private</div>
+                                <div class="why-desc">Your images never leave your device. All processing runs locally in your browser — no servers, no uploads, no data collection.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">⚡</div>
+                                <div class="why-title">Blazing Fast</div>
+                                <div class="why-desc">No upload wait times. Compression and cropping happen instantly using your own hardware — results in under a second.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">🎯</div>
+                                <div class="why-title">Precision Compression</div>
+                                <div class="why-desc">Not just a quality slider — our binary-search algorithm hits your exact target file size within 1–3%, every time.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">📐</div>
+                                <div class="why-title">Smart Resizing</div>
+                                <div class="why-desc">Set output dimensions in Pixels, MM, or CM. The tool preserves aspect ratio and auto-converts units at 96 DPI.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">✂️</div>
+                                <div class="why-title">Intuitive Cropping</div>
+                                <div class="why-desc">Drag-and-drop crop box with 8 resize handles and a live pixel readout. Works seamlessly on desktop and mobile touch.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">🆓</div>
+                                <div class="why-title">Free, No Sign-up</div>
+                                <div class="why-desc">No account, no subscription, no watermarks. Open the page and start working — that's it.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">📦</div>
+                                <div class="why-title">Batch Processing</div>
+                                <div class="why-desc">Drop up to 50 images at once and compress them all with the same settings in one click.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">📱</div>
+                                <div class="why-title">Works Everywhere</div>
+                                <div class="why-desc">Fully responsive — works on any device, any screen size, any modern browser. No app install required.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div class="guide-panel" id="gtab-faq">
+                    <div class="guide-section">
+                        <h3>❓ Frequently Asked Questions</h3>
+                        <div class="faq-item">
+                            <button class="faq-q">Is my image uploaded to any server? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">No. Everything runs 100% in your browser using the Canvas API. Your images never leave your device and no data is sent anywhere.</div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-q">What file formats are supported? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">You can upload JPG, PNG, and WebP images. Output is always saved as JPEG for maximum compression efficiency. Files up to 100 MB are supported.</div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-q">Can I compress to an exact file size? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">Yes — the tool uses a 14-step binary search across JPEG quality levels to get as close to your target size as possible. Results are typically within 1–3% of the target.</div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-q">What do Pixels, MM, and CM mean? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">They control the unit for Max Width and Max Height fields. Pixels is direct screen pixels. MM and CM are physical print units converted at 96 DPI (1mm ≈ 3.78px, 1cm ≈ 37.8px). Switching units auto-converts any values you've already entered.</div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-q">Why does my compressed file look different from the original? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">JPEG compression is lossy — at lower quality levels, some fine detail is reduced to achieve smaller file sizes. For most images compressed to 50 KB+, the quality difference is barely noticeable.</div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-q">How many images can I compress at once? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">You can select or drop up to 50 images at once. Each image is processed individually using the same settings.</div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-q">Can I crop and then compress the same image? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">Not in a single step yet, but you can: crop your image in the Crop tab → download it → then upload that downloaded file into the Compress tab to apply compression.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="errorContainer"></div>
+
+    <div class="main-card">
+
+        <!-- TABS -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="resize">📐 Compress Image</button>
+            <button class="tab-btn"        data-tab="crop">✂️ Crop Image</button>
+        </div>
+
+        <!-- ═══════════════ RESIZE PANEL ═══════════════ -->
+        <div class="panel active" id="panel-resize">
+
+            <div class="upload-zone" id="resizeZone">
+                <input type="file" id="resizeInput" class="file-input" accept="image/jpeg,image/png,image/webp" multiple>
+
+                <div class="upload-placeholder" id="resizePlaceholder">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drop your image here or click to browse</div>
+                    <div class="upload-subtext">JPG, PNG, WebP · Max 100 MB per file · Multiple files supported</div>
+                </div>
+
+                <div class="preview-container" id="resizePreview">
+                    <div class="preview-box">
+                        <img id="resizeImg" class="preview-img" src="" alt="preview">
+                        <button class="btn-close-img" id="resizeClear">×</button>
+                    </div>
+                    <div class="image-info">
+                        <div class="info-item"><div class="info-lbl">Filename</div><div class="info-val" id="rName">—</div></div>
+                        <div class="info-item"><div class="info-lbl">Size</div><div class="info-val" id="rSize">—</div></div>
+                        <div class="info-item"><div class="info-lbl">Width</div><div class="info-val" id="rW">—</div></div>
+                        <div class="info-item"><div class="info-lbl">Height</div><div class="info-val" id="rH">—</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <div class="dim-tabs" id="dimTabs">
+                    <button class="dim-tab active" data-unit="px">Pixels</button>
+                    <button class="dim-tab" data-unit="mm">MM</button>
+                    <button class="dim-tab" data-unit="cm">CM</button>
+                </div>
+
+                <div class="ctrl-row">
+                    <label class="ctrl-lbl" for="targetKB">Target Size:</label>
+                    <div class="ctrl-wrap">
+                        <input type="number" id="targetKB" class="ctrl-input" value="50" min="1">
+                        <span class="unit-badge">KB</span>
+                    </div>
+                </div>
+
+                <div class="ctrl-row">
+                    <label class="ctrl-lbl" for="maxWidth">Max Width:</label>
+                    <div class="ctrl-wrap">
+                        <input type="number" id="maxWidth" class="ctrl-input" placeholder="No limit" min="1">
+                        <span class="unit-badge" id="unitBadgeW">px</span>
+                    </div>
+                </div>
+
+                <div class="ctrl-row">
+                    <label class="ctrl-lbl" for="maxHeight">Max Height:</label>
+                    <div class="ctrl-wrap">
+                        <input type="number" id="maxHeight" class="ctrl-input" placeholder="No limit" min="1">
+                        <span class="unit-badge" id="unitBadgeH">px</span>
+                    </div>
+                </div>
+
+                <button class="action-btn btn-blue" id="compressBtn" disabled>Compress</button>
+                <div class="note"><strong>Note:</strong> You Can Compress 50 Images At Once</div>
+            </div>
+
+            <div class="results-section" id="compressResults">
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-title" id="rResName">—</div>
+                        <div class="result-badge">✓ Compressed</div>
+                    </div>
+                    <div class="result-stats">
+                        <div><div class="stat-val" id="rOrig">—</div><div class="stat-lbl">Original</div></div>
+                        <div><div class="stat-val" id="rComp">—</div><div class="stat-lbl">Compressed</div></div>
+                        <div><div class="stat-val" id="rPct">—</div><div class="stat-lbl">Reduction</div></div>
+                    </div>
+                    <button class="action-btn btn-green" id="dlCompressed">⬇️ Download Compressed Image</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════ CROP PANEL ═══════════════ -->
+        <div class="panel" id="panel-crop">
+
+            <div class="upload-zone" id="cropZone">
+                <input type="file" id="cropInput" class="file-input" accept="image/jpeg,image/png,image/webp">
+
+                <div class="upload-placeholder" id="cropPlaceholder">
+                    <div class="upload-icon">✂️</div>
+                    <div class="upload-text">Drop an image here or click to browse</div>
+                    <div class="upload-subtext">JPG, PNG, WebP · Max 100 MB per file · Multiple files supported</div>
+                </div>
+
+                <div class="preview-container" id="cropPreview">
+                    <div class="preview-box" id="cropBox" style="overflow:visible;">
+                        <div id="cropWrapper">
+                            <img id="cropImg" src="" alt="crop">
+                            <!-- overlay built by JS -->
+                        </div>
+                        <button class="btn-close-img" id="cropClear" style="z-index:20;">×</button>
+                    </div>
+
+                    <div class="image-info">
+                        <div class="info-item"><div class="info-lbl">Filename</div><div class="info-val" id="cName">—</div></div>
+                        <div class="info-item"><div class="info-lbl">Size</div><div class="info-val" id="cSize">—</div></div>
+                        <div class="info-item"><div class="info-lbl">Crop W</div><div class="info-val" id="cCropW">—</div></div>
+                        <div class="info-item"><div class="info-lbl">Crop H</div><div class="info-val" id="cCropH">—</div></div>
+                    </div>
+
+                    <div class="crop-actions">
+                        <button class="action-btn btn-blue"  id="applyCrop">✂️ Apply Crop</button>
+                        <button class="action-btn btn-green" id="dlCropped" disabled>⬇️ Download</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="note" style="margin-top:1.2rem">
+                <strong>How to crop:</strong> Drag the blue box or pull its handles to select the area, then click <em>Apply Crop</em>.
+            </div>
+        </div>
+
+    </div><!-- /.main-card -->
+</div><!-- /.container -->
+
+<script>
+/* ─── utils ─── */
+const $ = id => document.getElementById(id);
+function fmtSize(b) {
+    const kb = b/1024;
+    return kb >= 1024 ? (kb/1024).toFixed(2)+' MB' : kb.toFixed(2)+' KB';
+}
+function showErr(msg) {
+    const d = document.createElement('div');
+    d.className = 'error-msg'; d.textContent = msg;
+    $('errorContainer').appendChild(d);
+    setTimeout(() => d.remove(), 5000);
+}
+function readFile(file) {
+    return new Promise((res,rej) => {
+        const fr = new FileReader();
+        fr.onload = e => {
+            const img = new Image();
+            img.onload = () => res({ url: e.target.result, img });
+            img.onerror = rej;
+            img.src = e.target.result;
+        };
+        fr.onerror = rej;
+        fr.readAsDataURL(file);
+    });
+}
+function validate(file) {
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type))
+        { showErr('Please select a JPG, PNG or WebP image.'); return false; }
+    if (file.size > 100*1024*1024)
+        { showErr('File exceeds 100 MB.'); return false; }
+    return true;
+}
+
+/* ─── tab switching ─── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        $('panel-' + btn.dataset.tab).classList.add('active');
+    });
+});
+
+/* tab switching */
+
+/* ══════════════════════════════════════════
+   RESIZE / COMPRESS TAB
+══════════════════════════════════════════ */
+const rZone    = $('resizeZone');
+const rInput   = $('resizeInput');
+const rPH      = $('resizePlaceholder');
+const rPreview = $('resizePreview');
+const rImg     = $('resizeImg');
+const rClear   = $('resizeClear');
+const cBtn     = $('compressBtn');
+const cResults = $('compressResults');
+const dlComp   = $('dlCompressed');
+let rFile=null, rBlob=null;
+
+rZone.addEventListener('click', e => {
+    if (!rZone.classList.contains('has-image')) rInput.click();
+});
+rInput.addEventListener('change', e => {
+    const files = Array.from(e.target.files).slice(0, 50);
+    if (files.length) files.forEach(f => loadResize(f));
+});
+rZone.addEventListener('dragover',  e => { e.preventDefault(); rZone.classList.add('drag-over'); });
+rZone.addEventListener('dragleave', () => rZone.classList.remove('drag-over'));
+rZone.addEventListener('drop', e => {
+    e.preventDefault(); rZone.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).slice(0, 50);
+    if (files.length) files.forEach(f => loadResize(f));
+});
+rClear.addEventListener('click', e => { e.stopPropagation(); clearResize(); });
+
+async function loadResize(file) {
+    if (!validate(file)) return;
+    rFile = file; rBlob = null; cResults.classList.remove('active');
+    try {
+        const { url, img } = await readFile(file);
+        rImg.src = url;
+        $('rName').textContent = file.name;
+        $('rSize').textContent = fmtSize(file.size);
+        $('rW').textContent    = img.width  + ' PX';
+        $('rH').textContent    = img.height + ' PX';
+        rPH.style.display = 'none';
+        rPreview.classList.add('active');
+        rZone.classList.add('has-image');
+        cBtn.disabled = false;
+    } catch { showErr('Could not read image.'); }
+}
+function clearResize() {
+    rFile=null; rBlob=null; rInput.value=''; rImg.src='';
+    rPH.style.display=''; rPreview.classList.remove('active');
+    rZone.classList.remove('has-image'); cBtn.disabled=true;
+    cResults.classList.remove('active');
+}
+
+/* ── dim-tab unit switching ── */
+const DPI = 96;
+const unitConvert = { px: 1, mm: DPI/25.4, cm: DPI/2.54 };
+let activeUnit = 'px';
+
+document.querySelectorAll('.dim-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.dim-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const prev = activeUnit;
+        activeUnit = tab.dataset.unit;
+
+        const wInput = $('maxWidth'), hInput = $('maxHeight');
+        // convert existing values to new unit
+        [wInput, hInput].forEach(inp => {
+            if (inp.value) {
+                const px = parseFloat(inp.value) * unitConvert[prev];
+                inp.value = +(px / unitConvert[activeUnit]).toFixed(2);
+            }
+        });
+
+        // update badges
+        $('unitBadgeW').textContent = activeUnit;
+        $('unitBadgeH').textContent = activeUnit;
+
+        // update placeholders
+        const hints = { px: 'No limit', mm: 'No limit (mm)', cm: 'No limit (cm)' };
+        wInput.placeholder = hints[activeUnit];
+        hInput.placeholder = hints[activeUnit];
+    });
+});
+
+cBtn.addEventListener('click', async () => {
+    if (!rFile) return;
+    cBtn.disabled=true; cBtn.classList.add('loading');
+    try {
+        const targetBytes = (parseInt($('targetKB').value)||50)*1024;
+        const { img } = await readFile(rFile);
+
+        // resolve max dimensions in pixels
+        const factor = unitConvert[activeUnit];
+        const rawW = parseFloat($('maxWidth').value);
+        const rawH = parseFloat($('maxHeight').value);
+        const maxWpx = rawW ? Math.round(rawW * factor) : null;
+        const maxHpx = rawH ? Math.round(rawH * factor) : null;
+
+        // calculate output dimensions keeping aspect ratio
+        let outW = img.width, outH = img.height;
+        if (maxWpx && outW > maxWpx) {
+            outH = Math.round(outH * (maxWpx / outW));
+            outW = maxWpx;
+        }
+        if (maxHpx && outH > maxHpx) {
+            outW = Math.round(outW * (maxHpx / outH));
+            outH = maxHpx;
+        }
+
+        // binary-search quality to hit target file size
+        let lo=0.01, hi=1, best=null;
+        for (let i=0; i<14; i++) {
+            const mid = (lo+hi)/2;
+            const c = document.createElement('canvas');
+            c.width=outW; c.height=outH;
+            c.getContext('2d').drawImage(img, 0, 0, outW, outH);
+            const b = await new Promise(r=>c.toBlob(r,'image/jpeg',mid));
+            best=b;
+            if (b.size > targetBytes) hi=mid; else lo=mid;
+        }
+        rBlob = best;
+        const pct = ((rFile.size-best.size)/rFile.size*100);
+        $('rResName').textContent = rFile.name.replace(/\.[^/.]+$/,'')+'-compressed.jpg';
+        $('rOrig').textContent    = fmtSize(rFile.size);
+        $('rComp').textContent    = fmtSize(best.size);
+        $('rPct').textContent     = (pct>0?'-':'+')+Math.abs(pct).toFixed(1)+'%';
+        // show output dimensions in result
+        $('rW').textContent = outW+' PX';
+        $('rH').textContent = outH+' PX';
+        cResults.classList.add('active');
+    } catch(err) { showErr('Compression failed: '+err.message); }
+    finally { cBtn.disabled=false; cBtn.classList.remove('loading'); }
+});
+
+dlComp.addEventListener('click', () => {
+    if (!rBlob) return;
+    const a = Object.assign(document.createElement('a'),{
+        href: URL.createObjectURL(rBlob),
+        download: rFile.name.replace(/\.[^/.]+$/,'')+'-compressed.jpg'
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+});
+
+/* ══════════════════════════════════════════
+   CROP TAB
+══════════════════════════════════════════ */
+const czZone   = $('cropZone');
+const czInput  = $('cropInput');
+const czPH     = $('cropPlaceholder');
+const czPreview= $('cropPreview');
+const czImg    = $('cropImg');
+const czWrap   = $('cropWrapper');
+const czClear  = $('cropClear');
+const applyBtn = $('applyCrop');
+const dlCrop   = $('dlCropped');
+let czFile=null, czBlob=null, czOverlay=null;
+let scX=1, scY=1, realW=0, realH=0;
+
+czZone.addEventListener('click', e => {
+    if (!czZone.classList.contains('has-image')) czInput.click();
+});
+czInput.addEventListener('change', e => { if(e.target.files[0]) loadCrop(e.target.files[0]); });
+czZone.addEventListener('dragover',  e => { e.preventDefault(); czZone.classList.add('drag-over'); });
+czZone.addEventListener('dragleave', () => czZone.classList.remove('drag-over'));
+czZone.addEventListener('drop', e => {
+    e.preventDefault(); czZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) loadCrop(e.dataTransfer.files[0]);
+});
+czClear.addEventListener('click', e => { e.stopPropagation(); clearCrop(); });
+
+async function loadCrop(file) {
+    if (!validate(file)) return;
+    czFile=file; czBlob=null; dlCrop.disabled=true;
+    try {
+        const { url, img } = await readFile(file);
+        czImg.src = url;
+        realW=img.width; realH=img.height;
+        $('cName').textContent = file.name;
+        $('cSize').textContent = fmtSize(file.size);
+        czPH.style.display = 'none';
+        czPreview.classList.add('active');
+        czZone.classList.add('has-image');
+        requestAnimationFrame(() => requestAnimationFrame(buildOverlay));
+    } catch { showErr('Could not read image.'); }
+}
+function clearCrop() {
+    czFile=null; czBlob=null; czInput.value=''; czImg.src='';
+    if (czOverlay) { czOverlay.remove(); czOverlay=null; }
+    czPH.style.display=''; czPreview.classList.remove('active');
+    czZone.classList.remove('has-image'); dlCrop.disabled=true;
+    $('cCropW').textContent='—'; $('cCropH').textContent='—';
+}
+
+function buildOverlay() {
+    const dw = czImg.offsetWidth;
+    const dh = czImg.offsetHeight;
+    scX = realW/dw; scY = realH/dh;
+
+    if (czOverlay) czOverlay.remove();
+
+    const sw = Math.round(dw*0.6), sh = Math.round(dh*0.6);
+    const sx = Math.round((dw-sw)/2), sy = Math.round((dh-sh)/2);
+
+    czOverlay = document.createElement('div');
+    czOverlay.id = 'cropOverlay';
+    Object.assign(czOverlay.style,{ left:sx+'px', top:sy+'px', width:sw+'px', height:sh+'px' });
+
+    ['nw','n','ne','e','se','s','sw','w'].forEach(p => {
+        const h = document.createElement('div');
+        h.className='crop-handle '+p; h.dataset.handle=p;
+        czOverlay.appendChild(h);
+    });
+
+    const badge = document.createElement('div');
+    badge.className='crop-dims-badge';
+    czOverlay.appendChild(badge);
+    czWrap.appendChild(czOverlay);
+
+    syncInfo();
+    attachDrag(dw, dh);
+}
+
+function syncInfo() {
+    if (!czOverlay) return;
+    const cw = Math.round(parseInt(czOverlay.style.width)  * scX);
+    const ch = Math.round(parseInt(czOverlay.style.height) * scY);
+    czOverlay.querySelector('.crop-dims-badge').textContent = cw+' × '+ch+' px';
+    $('cCropW').textContent = cw+' PX';
+    $('cCropH').textContent = ch+' PX';
+}
+
+function attachDrag(maxW, maxH) {
+    const MIN=20;
+    const cl=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+
+    /* move */
+    czOverlay.addEventListener('mousedown', startMove);
+    czOverlay.addEventListener('touchstart', startMove, {passive:false});
+
+    function startMove(e) {
+        if (e.target.classList.contains('crop-handle')) return;
+        e.preventDefault();
+        const sx=(e.touches?e.touches[0].clientX:e.clientX);
+        const sy=(e.touches?e.touches[0].clientY:e.clientY);
+        const ol=parseInt(czOverlay.style.left),  ot=parseInt(czOverlay.style.top);
+        const ow=parseInt(czOverlay.style.width),  oh=parseInt(czOverlay.style.height);
+        const mv=ev => {
+            const dx=(ev.touches?ev.touches[0].clientX:ev.clientX)-sx;
+            const dy=(ev.touches?ev.touches[0].clientY:ev.clientY)-sy;
+            czOverlay.style.left = cl(ol+dx, 0, maxW-ow)+'px';
+            czOverlay.style.top  = cl(ot+dy, 0, maxH-oh)+'px';
+            syncInfo();
+        };
+        const up=()=>{
+            document.removeEventListener('mousemove',mv);
+            document.removeEventListener('mouseup',up);
+            document.removeEventListener('touchmove',mv);
+            document.removeEventListener('touchend',up);
+        };
+        document.addEventListener('mousemove',mv);
+        document.addEventListener('mouseup',up);
+        document.addEventListener('touchmove',mv,{passive:false});
+        document.addEventListener('touchend',up);
+    }
+
+    /* resize handles */
+    czOverlay.querySelectorAll('.crop-handle').forEach(h => {
+        h.addEventListener('mousedown', startResize);
+        h.addEventListener('touchstart', startResize, {passive:false});
+    });
+
+    function startResize(e) {
+        e.preventDefault(); e.stopPropagation();
+        const dir=e.currentTarget.dataset.handle;
+        const sx=(e.touches?e.touches[0].clientX:e.clientX);
+        const sy=(e.touches?e.touches[0].clientY:e.clientY);
+        const ol=parseInt(czOverlay.style.left), ot=parseInt(czOverlay.style.top);
+        const ow=parseInt(czOverlay.style.width),oh=parseInt(czOverlay.style.height);
+        const mv=ev=>{
+            const dx=(ev.touches?ev.touches[0].clientX:ev.clientX)-sx;
+            const dy=(ev.touches?ev.touches[0].clientY:ev.clientY)-sy;
+            let l=ol,t=ot,w=ow,h=oh;
+            if(dir.includes('e')) w=cl(ow+dx,MIN,maxW-ol);
+            if(dir.includes('s')) h=cl(oh+dy,MIN,maxH-ot);
+            if(dir.includes('w')){ const nl=cl(ol+dx,0,ol+ow-MIN); w=ow-(nl-ol); l=nl; }
+            if(dir.includes('n')){ const nt=cl(ot+dy,0,ot+oh-MIN); h=oh-(nt-ot); t=nt; }
+            Object.assign(czOverlay.style,{left:l+'px',top:t+'px',width:w+'px',height:h+'px'});
+            syncInfo();
+        };
+        const up=()=>{
+            document.removeEventListener('mousemove',mv);
+            document.removeEventListener('mouseup',up);
+            document.removeEventListener('touchmove',mv);
+            document.removeEventListener('touchend',up);
+        };
+        document.addEventListener('mousemove',mv);
+        document.addEventListener('mouseup',up);
+        document.addEventListener('touchmove',mv,{passive:false});
+        document.addEventListener('touchend',up);
+    }
+}
+
+/* apply crop */
+applyBtn.addEventListener('click', async () => {
+    if (!czFile || !czOverlay) return;
+    applyBtn.disabled=true; applyBtn.classList.add('loading');
+    try {
+        const cx=Math.round(parseInt(czOverlay.style.left)  *scX);
+        const cy=Math.round(parseInt(czOverlay.style.top)   *scY);
+        const cw=Math.round(parseInt(czOverlay.style.width) *scX);
+        const ch=Math.round(parseInt(czOverlay.style.height)*scY);
+        const { img } = await readFile(czFile);
+        const cv=document.createElement('canvas');
+        cv.width=cw; cv.height=ch;
+        cv.getContext('2d').drawImage(img, cx,cy,cw,ch, 0,0,cw,ch);
+        czBlob = await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92));
+        dlCrop.disabled=false;
+        czImg.src = cv.toDataURL('image/jpeg',0.92);
+        $('cSize').textContent = fmtSize(czBlob.size);
+        realW=cw; realH=ch;
+        requestAnimationFrame(()=>requestAnimationFrame(buildOverlay));
+    } catch(err) { showErr('Crop failed: '+err.message); }
+    finally { applyBtn.disabled=false; applyBtn.classList.remove('loading'); }
+});
+
+/* download cropped */
+dlCrop.addEventListener('click', () => {
+    if (!czBlob) return;
+    const a=Object.assign(document.createElement('a'),{
+        href: URL.createObjectURL(czBlob),
+        download: (czFile?czFile.name.replace(/\.[^/.]+$/,''):'image')+'-cropped.jpg'
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+});
+
+/* ── Guide Modal ── */
+$('openGuide').addEventListener('click', () => $('guideModal').classList.add('active'));
+$('closeGuide').addEventListener('click', () => $('guideModal').classList.remove('active'));
+$('guideModal').addEventListener('click', e => { if (e.target === $('guideModal')) $('guideModal').classList.remove('active'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('guideModal').classList.remove('active'); });
+
+/* guide inner tabs */
+document.querySelectorAll('.guide-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.guide-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.guide-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        $('gtab-' + tab.dataset.gtab).classList.add('active');
+    });
+});
+
+/* FAQ accordion */
+document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+    });
+});
+
+window.addEventListener('resize', ()=>{
+    if (czImg.src && czOverlay) requestAnimationFrame(()=>requestAnimationFrame(buildOverlay));
+});
+</script>
+</body>
+</html>

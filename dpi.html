@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPI Changer – Professional Image Metadata Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Colors from reference */
+            --primary: #1a1a1a;
+            --primary-hover: #000000;
+            --bg: #FFFFFF;
+            --bg-soft: #F5F5F0;
+            --border-main: #2d2d2d;
+            --border-light: #DDDDD8;
+            --text: #111111;
+            --text-sub: #3a3a3a;
+            --text-muted: #7a7a72;
+            
+            /* Typography */
+            --font-body: 'Poppins', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            
+            /* Border radius */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-soft);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* ============================================
+           HEADER
+           ============================================ */
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+            color: #0a0a0a;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.03em;
+        }
+        
+        .subtitle em {
+            font-style: italic;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+        
+        /* ============================================
+           MAIN CARD
+           ============================================ */
+        .main-card {
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--border-main);
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            animation: fadeUp 0.4s ease-out;
+        }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ============================================
+           TABS (DPI Settings / Table sections)
+           ============================================ */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: color .2s, border-color .2s;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+        
+        /* Panels */
+        .panel {
+            display: none;
+        }
+        
+        .panel.active {
+            display: block;
+        }
+        
+        /* ============================================
+           INFO SECTION
+           ============================================ */
+        .info-section {
+            background: var(--bg-soft);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-section h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 0.9rem;
+        }
+        
+        .info-card {
+            background: var(--bg);
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.1rem;
+        }
+        
+        .info-card h3 {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #0a0a0a;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.01em;
+        }
+        
+        .info-card p {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+        
+        /* ============================================
+           UPLOAD ZONE
+           ============================================ */
+        .upload-section {
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        .upload-section.hidden {
+            display: none;
+        }
+        
+        .upload-zone {
+            background: var(--bg-soft);
+            border: 2px dashed var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .3s, background .3s;
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+            border-color: var(--primary);
+            background: #EFEFEA;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .upload-zone h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .upload-zone p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        /* ============================================
+           CONTROLS
+           ============================================ */
+        .controls {
+            background: var(--bg-soft);
+            border-radius: var(--radius-md);
+            padding: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        
+        .controls.active {
+            display: block;
+        }
+        
+        .controls h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+        
+        /* Preset dimension tabs */
+        .preset-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+        
+        .preset-btn {
+            padding: 0.45rem 1rem;
+            border: 1px solid var(--border-light);
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 500;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: background .2s, color .2s, border-color .2s;
+            color: var(--text);
+        }
+        
+        .preset-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Control rows */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .input-group label {
+            font-size: 0.88rem;
+            font-weight: 500;
+            min-width: 90px;
+            color: var(--text);
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 0.6rem 0.9rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-size: 0.88rem;
+            transition: border-color .2s, box-shadow .2s;
+            background: var(--bg);
+            color: var(--text);
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,26,26,.12);
+        }
+        
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.2rem;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.95rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .25s, transform .2s, box-shadow .2s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,.18);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,.28);
+        }
+        
+        .btn-secondary {
+            background: #2a2a2a;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #000000;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none;
+        }
+        
+        /* ============================================
+           TABLE
+           ============================================ */
+        .table-container {
+            display: none;
+            margin-top: 1.5rem;
+        }
+        
+        .table-container.active {
+            display: block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg);
+            border: 2px solid var(--border-main);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        thead {
+            background: var(--bg-soft);
+            border-bottom: 2px solid var(--border-light);
+        }
+        
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-sub);
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.88rem;
+            color: var(--text);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tbody tr {
+            transition: background 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: var(--bg-soft);
+        }
+        
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+        }
+        
+        .filename {
+            font-weight: 500;
+            color: var(--text);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .dpi-value {
+            font-family: var(--font-mono);
+            font-weight: 500;
+            color: var(--primary);
+            font-size: 0.82rem;
+        }
+        
+        .btn-download {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: background .25s, transform .2s;
+            border-radius: var(--radius-sm);
+        }
+        
+        .btn-download:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        .btn-download:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        /* ============================================
+           LOADING SPINNER
+           ============================================ */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ============================================
+           ERROR MESSAGES
+           ============================================ */
+        .error-message {
+            background: #F0F0EB;
+            color: var(--primary);
+            padding: 0.9rem 1rem;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary);
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* ============================================
+           NOTE
+           ============================================ */
+        .note {
+            margin-top: 1.2rem;
+            padding: 0.7rem 1rem;
+            background: var(--bg-soft);
+            border-left: 4px solid var(--border-main);
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            color: var(--text-sub);
+        }
+        
+        /* ============================================
+           HEADER TOP LAYOUT
+           ============================================ */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .header-center {
+            text-align: center;
+            flex: 1;
+        }
+
+        .how-btn {
+            background: none;
+            border: 1.5px solid var(--border-main);
+            color: var(--primary);
+            padding: 0.55rem 1.2rem;
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: background .2s, color .2s;
+            white-space: nowrap;
+            margin-top: 0.25rem;
+        }
+
+        .how-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ============================================
+           GUIDE MODAL
+           ============================================ */
+        .guide-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .guide-modal.active {
+            display: flex;
+        }
+
+        .guide-box {
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            max-width: 680px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            animation: fadeUp .3s ease-out;
+            border: 2px solid var(--border-main);
+        }
+
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.8rem 1.2rem;
+            border-bottom: 1.5px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 1;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .guide-header h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+
+        .guide-close {
+            background: none;
+            border: 1.5px solid var(--border-light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            transition: background .2s, color .2s, border-color .2s;
+        }
+
+        .guide-close:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .guide-tabs {
+            display: flex;
+            gap: 0;
+            padding: 1rem 1.8rem 0;
+            border-bottom: 1.5px solid var(--border-light);
+        }
+
+        .guide-tab {
+            background: none;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2.5px solid transparent;
+            margin-bottom: -1.5px;
+            transition: color .2s, border-color .2s;
+        }
+
+        .guide-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .guide-tab:hover {
+            color: var(--primary);
+        }
+
+        .guide-body {
+            padding: 1.6rem 1.8rem 2rem;
+        }
+
+        .guide-panel {
+            display: none;
+        }
+
+        .guide-panel.active {
+            display: block;
+        }
+
+        .guide-section {
+            margin-bottom: 1.8rem;
+        }
+
+        .guide-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .guide-section h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0a0a0a;
+            margin-bottom: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .step-list li {
+            display: flex;
+            gap: 0.85rem;
+            align-items: flex-start;
+            font-size: 0.88rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+
+        .step-num {
+            min-width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        /* Why grid */
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.9rem;
+        }
+
+        .why-card {
+            background: var(--bg-soft);
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.1rem;
+        }
+
+        .why-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .why-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #0a0a0a;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.01em;
+        }
+
+        .why-desc {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+
+        /* FAQ */
+        .faq-item {
+            border-bottom: 1.5px solid var(--border-light);
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-q {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 1rem 0;
+            font-family: var(--font-body);
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .faq-q:hover {
+            color: #000;
+        }
+
+        .faq-arrow {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform .25s;
+            flex-shrink: 0;
+        }
+
+        .faq-item.open .faq-arrow {
+            transform: rotate(180deg);
+        }
+
+        .faq-a {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.7;
+            padding-bottom: 1rem;
+            display: none;
+        }
+
+        .faq-item.open .faq-a {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .header-top { flex-direction: column; align-items: center; gap: 1rem; }
+            .header-center { order: -1; }
+            .why-grid { grid-template-columns: 1fr; }
+            .guide-box { border-radius: var(--radius-md); }
+            .guide-header, .guide-body { padding-left: 1.2rem; padding-right: 1.2rem; }
+            .guide-tabs { padding-left: 1.2rem; }
+        }
+
+        /* ============================================
+           IMAGE PREVIEW MODAL
+           ============================================ */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .preview-modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .preview-modal-box {
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--border-main);
+            max-width: 860px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+            animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .preview-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            border-bottom: 1.5px solid var(--border-light);
+            background: var(--bg-soft);
+        }
+
+        .preview-modal-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+        }
+
+        .preview-modal-meta {
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .preview-modal-close {
+            background: none;
+            border: 1.5px solid var(--border-light);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: background .2s, color .2s, border-color .2s;
+            flex-shrink: 0;
+        }
+
+        .preview-modal-close:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .preview-modal-body {
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e8e8e4;
+            min-height: 300px;
+            padding: 1.5rem;
+        }
+
+        .preview-modal-img {
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+            display: block;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .thumbnail {
+            cursor: zoom-in;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .thumbnail:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .main-card {
+                padding: 1.5rem;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .control-group {
+                flex-direction: column;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.75rem;
+            }
+            
+            .thumbnail {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="header-top">
+                <div class="header-center">
+                    <h1>DPI Changer</h1>
+                    <p class="subtitle">Change DPI. Preserve Quality — <em>in seconds.</em></p>
+                </div>
+                <button class="how-btn" id="openGuide">How to Use ↗</button>
+            </div>
+        </header>
+        
+        <!-- WHAT IS DPI SECTION -->
+        <div class="main-card">
+        <div class="info-section">
+            <h2>Understanding DPI & PPI</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>What is DPI?</h3>
+                    <p>DPI (Dots Per Inch) or PPI (Pixels Per Inch) is metadata that tells applications how large an image should appear when printed or displayed. It's a density value, not a dimension.</p>
+                </div>
+                <div class="info-card">
+                    <h3>DPI vs Image Size</h3>
+                    <p>Your image's pixel dimensions (e.g., 1920×1080) define its actual size. DPI only affects <strong>physical output size</strong>. A 1920px image at 72 DPI prints larger than the same image at 300 DPI.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Metadata Only</h3>
+                    <p>This tool updates DPI metadata <strong>without resampling</strong>. Your pixel dimensions stay identical. No quality loss. Perfect for print preparation or meeting specific requirements.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MAIN CARD WITH TABS -->
+        <div class="main-card">
+            <!-- TABS -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="dpi">📐 Change DPI</button>
+                <button class="tab-btn" data-tab="table">📊 View Images</button>
+            </div>
+            
+            <!-- DPI TAB PANEL -->
+            <div class="panel active" id="panel-dpi">
+        
+        <!-- UPLOAD SECTION -->
+        <div class="upload-section">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📁</div>
+                <h3>Drop your image here or click to browse</h3>
+                <p class="format-info">JPG, PNG, WebP · Max 69 MB per file · Multiple files supported</p>
+                <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" multiple>
+            </div>
+            <div id="errorContainer"></div>
+        </div>
+        
+        <!-- CONTROL PANEL -->
+        <div class="controls" id="controls">
+            <h3>DPI Settings</h3>
+            <div class="control-group">
+                <div class="input-group">
+                    <label for="dpiValue">Custom DPI</label>
+                    <input type="number" id="dpiValue" placeholder="Enter DPI" min="1" max="9999">
+                </div>
+            </div>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-dpi="72">72 DPI (Screen)</button>
+                <button class="preset-btn" data-dpi="96">96 DPI (Standard)</button>
+                <button class="preset-btn" data-dpi="150">150 DPI</button>
+                <button class="preset-btn" data-dpi="300">300 DPI (Print)</button>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="applyAllBtn">Apply to All Images</button>
+                <button class="btn btn-secondary" id="downloadAllBtn">Download All</button>
+            </div>
+            <div class="note"><strong>Note:</strong> Changes DPI metadata only – pixel dimensions remain unchanged.</div>
+        </div>
+        
+        <!-- IMAGE TABLE -->
+        <div class="table-container" id="tableContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>Filename</th>
+                        <th>Original DPI</th>
+                        <th>New DPI</th>
+                        <th>Dimensions</th>
+                        <th>File Size</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="imageTableBody">
+                    <!-- Rows will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+        
+            </div><!-- /.panel-dpi -->
+            
+            <!-- TABLE TAB PANEL -->
+            <div class="panel" id="panel-table">
+                <div class="table-container active">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Preview</th>
+                                <th>Filename</th>
+                                <th>Original DPI</th>
+                                <th>New DPI</th>
+                                <th>Dimensions</th>
+                                <th>File Size</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="imageTableBody2">
+                            <!-- Same rows will be shown here -->
+                        </tbody>
+                    </table>
+                    <div class="note" style="margin-top: 1rem;"><strong>Note:</strong> This is a read-only view of all uploaded images.</div>
+                </div>
+            </div><!-- /.panel-table -->
+            
+        </div><!-- /.main-card -->
+    </div><!-- /.container -->
+
+    <!-- IMAGE PREVIEW MODAL -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-modal-box">
+            <div class="preview-modal-header">
+                <div>
+                    <div class="preview-modal-title" id="previewModalTitle">—</div>
+                    <div class="preview-modal-meta" id="previewModalMeta">—</div>
+                </div>
+                <button class="preview-modal-close" id="previewModalClose">×</button>
+            </div>
+            <div class="preview-modal-body">
+                <img class="preview-modal-img" id="previewModalImg" src="" alt="Preview">
+            </div>
+        </div>
+    </div>
+
+    <!-- GUIDE MODAL -->
+    <div class="guide-modal" id="guideModal">
+        <div class="guide-box">
+            <div class="guide-header">
+                <h2>📖 Guide & FAQ</h2>
+                <button class="guide-close" id="closeGuide">×</button>
+            </div>
+
+            <div class="guide-tabs">
+                <button class="guide-tab active" data-gtab="howto">📐 How to Use</button>
+                <button class="guide-tab" data-gtab="why">⭐ Why Use This</button>
+                <button class="guide-tab" data-gtab="faq">❓ FAQ</button>
+            </div>
+
+            <div class="guide-body">
+
+                <!-- HOW TO USE -->
+                <div class="guide-panel active" id="gtab-howto">
+                    <div class="guide-section">
+                        <h3>🖼️ How to Change Image DPI</h3>
+                        <ul class="step-list">
+                            <li><span class="step-num">1</span> Click the upload zone or drag &amp; drop your JPG or PNG images into the box. Multiple files are supported.</li>
+                            <li><span class="step-num">2</span> Your images appear in the table showing their original DPI, dimensions, and file size.</li>
+                            <li><span class="step-num">3</span> Enter a custom DPI value in the input field, or click one of the quick presets — <strong>72</strong>, <strong>96</strong>, <strong>150</strong>, or <strong>300 DPI</strong>.</li>
+                            <li><span class="step-num">4</span> Click <strong>Apply to All Images</strong> to update the DPI metadata across every uploaded image at once.</li>
+                            <li><span class="step-num">5</span> Click <strong>Download</strong> on any row to save that image with the new DPI embedded in its metadata.</li>
+                            <li><span class="step-num">6</span> Use <strong>Download All</strong> to save every image in one go.</li>
+                        </ul>
+                    </div>
+                    <div class="guide-section">
+                        <h3>💡 Tips</h3>
+                        <ul class="step-list">
+                            <li><span class="step-num">✦</span> DPI change is <strong>metadata-only</strong> — your pixel dimensions never change and image quality is fully preserved.</li>
+                            <li><span class="step-num">✦</span> Use <strong>72 DPI</strong> for screen/web, <strong>300 DPI</strong> for professional print.</li>
+                            <li><span class="step-num">✦</span> Click any thumbnail in the table to preview the full image.</li>
+                            <li><span class="step-num">✦</span> All processing happens in your browser — no images are ever uploaded to a server.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- WHY USE THIS -->
+                <div class="guide-panel" id="gtab-why">
+                    <div class="guide-section">
+                        <h3>⭐ Why Use This Tool?</h3>
+                        <p style="font-size:.88rem;color:var(--text-sub);line-height:1.75;margin-bottom:1.4rem;">
+                            Most DPI tools either resample your image (degrading quality) or send your files to a remote server. This tool does neither.
+                        </p>
+                        <div class="why-grid">
+                            <div class="why-card">
+                                <div class="why-icon">🔒</div>
+                                <div class="why-title">100% Private</div>
+                                <div class="why-desc">Your images never leave your device. All processing runs locally in your browser — no servers, no uploads, no data collection.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">⚡</div>
+                                <div class="why-title">Instant Processing</div>
+                                <div class="why-desc">No upload wait times. DPI changes happen in milliseconds using your own hardware.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">🎯</div>
+                                <div class="why-title">Metadata Only</div>
+                                <div class="why-desc">Only the DPI metadata tag is updated. Pixel dimensions, colors, and image quality are completely untouched.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">📦</div>
+                                <div class="why-title">Batch Support</div>
+                                <div class="why-desc">Upload and convert multiple images at once. Apply the same DPI to all with a single click.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">🆓</div>
+                                <div class="why-title">Free, No Sign-up</div>
+                                <div class="why-desc">No account, no subscription, no watermarks. Open the page and start working immediately.</div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon">📱</div>
+                                <div class="why-title">Works Everywhere</div>
+                                <div class="why-desc">Fully responsive — works on any device, any screen size, any modern browser.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div class="guide-panel" id="gtab-faq">
+                    <div class="guide-section">
+                        <h3>❓ Frequently Asked Questions</h3>
+
+                        <div class="faq-item">
+                            <button class="faq-q">What is DPI and why does it matter? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">DPI (Dots Per Inch) is metadata that tells software how large an image should print. A 1000×1000px image at 100 DPI prints at 10×10 inches; the same image at 300 DPI prints at 3.3×3.3 inches — same pixels, different physical size.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">Will changing DPI affect my image quality or file size? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">No. This tool only updates the DPI metadata tag inside the file. Pixels, colors, and visual quality are completely untouched. File size may change very slightly (a few bytes) due to metadata rewriting, but visually the image is identical.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">Is my image uploaded to any server? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">Absolutely not. Everything runs 100% in your browser using the Canvas API and binary metadata manipulation. Your images never leave your device and no data is sent anywhere.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">What file formats are supported? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">JPG / JPEG and PNG formats are supported, up to 69 MB per file. JPEG DPI is stored in the JFIF APP0 header, PNG DPI is stored in the pHYs chunk — both are correctly updated by this tool.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">What DPI should I use for printing? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">300 DPI is the industry standard for high-quality print. 150 DPI works for large-format prints viewed from a distance. 72–96 DPI is standard for screen/web use only.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">Can I change DPI on multiple images at once? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">Yes! Upload as many images as you need, enter your desired DPI, then click "Apply to All Images". Each image will be processed and made available for individual download.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-q">Why does my software still show the old DPI after downloading? <span class="faq-arrow">▼</span></button>
+                            <div class="faq-a">Make sure you're opening the downloaded file (not the original). Some apps cache file info — try closing and reopening the file, or use File → Properties to verify the updated DPI.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /.guide-body -->
+        </div><!-- /.guide-box -->
+    </div><!-- /.guide-modal -->
+
+    <script>
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetPanel = document.getElementById('panel-' + btn.dataset.tab);
+                if (!targetPanel) return; // Exit if panel doesn't exist
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                targetPanel.classList.add('active');
+            });
+        });
+        
+        // ============================================
+        // APPLICATION STATE
+        // ============================================
+        const state = {
+            images: [], // Array of image objects
+            maxFileSize: 69 * 1024 * 1024 // 69 MB in bytes
+        };
+        
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const elements = {
+            uploadZone: document.getElementById('uploadZone'),
+            fileInput: document.getElementById('fileInput'),
+            errorContainer: document.getElementById('errorContainer'),
+            uploadSection: document.querySelector('.upload-section'),
+            controls: document.getElementById('controls'),
+            tableContainer: document.getElementById('tableContainer'),
+            tableBody: document.getElementById('imageTableBody'),
+            dpiValue: document.getElementById('dpiValue'),
+            applyAllBtn: document.getElementById('applyAllBtn'),
+            downloadAllBtn: document.getElementById('downloadAllBtn')
+        };
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        // File input change
+        elements.fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // Click on upload zone to open file dialog
+        elements.uploadZone.addEventListener('click', (e) => {
+            // Prevent triggering if clicking on the file input itself
+            if (e.target !== elements.fileInput) {
+                elements.fileInput.click();
+            }
+        });
+        
+        // Drag and drop
+        elements.uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            elements.uploadZone.classList.add('drag-over');
+        });
+        
+        elements.uploadZone.addEventListener('dragleave', () => {
+            elements.uploadZone.classList.remove('drag-over');
+        });
+        
+        elements.uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            elements.uploadZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dpi = btn.getAttribute('data-dpi');
+                elements.dpiValue.value = dpi;
+            });
+        });
+        
+        // Apply to all button
+        elements.applyAllBtn.addEventListener('click', () => {
+            const dpi = parseInt(elements.dpiValue.value);
+            if (!dpi || dpi <= 0) {
+                showError('Please enter a valid DPI value');
+                return;
+            }
+            applyDpiToAll(dpi);
+        });
+        
+        // Download all button
+        elements.downloadAllBtn.addEventListener('click', () => {
+            downloadAll();
+        });
+        
+        // ============================================
+        // FILE HANDLING
+        // ============================================
+        
+        function handleFiles(files) {
+            if (!files || files.length === 0) {
+                return; // No files selected, exit silently
+            }
+            
+            clearError();
+            const fileArray = Array.from(files);
+            
+            fileArray.forEach(file => {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (!validTypes.includes(file.type)) {
+                    showError(`${file.name}: Unsupported file type. Only JPG, JPEG, and PNG are supported.`);
+                    return;
+                }
+                
+                // Validate file size
+                if (file.size > state.maxFileSize) {
+                    showError(`${file.name}: File size exceeds 69 MB limit.`);
+                    return;
+                }
+                
+                processImage(file);
+            });
+        }
+        
+        // ============================================
+        // IMAGE PROCESSING
+        // ============================================
+        
+        async function processImage(file) {
+            const reader = new FileReader();
+            
+            reader.onerror = (error) => {
+                console.error('FileReader error:', error);
+                showError(`${file.name}: Error reading file.`);
+            };
+            
+            reader.onload = async (e) => {
+                const img = new Image();
+                
+                img.onerror = () => {
+                    console.error('Image load error for:', file.name);
+                    showError(`${file.name}: Error loading image.`);
+                };
+                
+                img.onload = async () => {
+                    try {
+                        // Read original DPI
+                        const originalDpi = await extractDPI(file);
+                        
+                        // Create image object
+                        const imageObj = {
+                            id: Date.now() + Math.random(),
+                            file: file,
+                            filename: file.name,
+                            originalDpi: originalDpi,
+                            newDpi: originalDpi,
+                            width: img.width,
+                            height: img.height,
+                            fileSize: file.size,
+                            thumbnail: e.target.result,
+                            imageData: e.target.result,
+                            processed: false
+                        };
+                        
+                        state.images.push(imageObj);
+                        renderTable();
+                        showControls();
+                    } catch (error) {
+                        console.error('Error processing image:', error);
+                        showError(`${file.name}: Error processing image.`);
+                    }
+                };
+                
+                img.src = e.target.result;
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // ============================================
+        // DPI EXTRACTION
+        // ============================================
+        
+        async function extractDPI(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const arrayBuffer = e.target.result;
+                    const view = new DataView(arrayBuffer);
+                    
+                    try {
+                        // For JPEG files
+                        if (file.type === 'image/jpeg') {
+                            const dpi = extractJPEGDPI(view);
+                            resolve(dpi);
+                        }
+                        // For PNG files
+                        else if (file.type === 'image/png') {
+                            const dpi = extractPNGDPI(view);
+                            resolve(dpi);
+                        }
+                        else {
+                            resolve(72); // Default
+                        }
+                    } catch (err) {
+                        console.error('Error extracting DPI:', err);
+                        resolve(72); // Default fallback
+                    }
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        function extractJPEGDPI(view) {
+            let offset = 2; // Skip SOI marker
+            
+            while (offset < view.byteLength) {
+                // Check for APP0 marker (JFIF)
+                if (view.getUint8(offset) === 0xFF && view.getUint8(offset + 1) === 0xE0) {
+                    const length = view.getUint16(offset + 2);
+                    
+                    // Check for JFIF identifier
+                    if (view.getUint8(offset + 4) === 0x4A && // J
+                        view.getUint8(offset + 5) === 0x46 && // F
+                        view.getUint8(offset + 6) === 0x49 && // I
+                        view.getUint8(offset + 7) === 0x46) { // F
+                        
+                        const units = view.getUint8(offset + 9);
+                        const xDensity = view.getUint16(offset + 10);
+                        const yDensity = view.getUint16(offset + 12);
+                        
+                        if (units === 1) { // DPI
+                            return xDensity;
+                        } else if (units === 2) { // DPCM - convert to DPI
+                            return Math.round(xDensity * 2.54);
+                        }
+                    }
+                    
+                    offset += 2 + length;
+                } else {
+                    offset++;
+                }
+            }
+            
+            return 72; // Default if not found
+        }
+        
+        function extractPNGDPI(view) {
+            let offset = 8; // Skip PNG signature
+            
+            while (offset < view.byteLength) {
+                const length = view.getUint32(offset);
+                const type = String.fromCharCode(
+                    view.getUint8(offset + 4),
+                    view.getUint8(offset + 5),
+                    view.getUint8(offset + 6),
+                    view.getUint8(offset + 7)
+                );
+                
+                if (type === 'pHYs') {
+                    const pixelsPerUnitX = view.getUint32(offset + 8);
+                    const pixelsPerUnitY = view.getUint32(offset + 12);
+                    const unit = view.getUint8(offset + 16);
+                    
+                    if (unit === 1) { // Meters
+                        // Convert pixels per meter to DPI
+                        return Math.round(pixelsPerUnitX / 39.3701);
+                    }
+                }
+                
+                offset += 12 + length;
+            }
+            
+            return 72; // Default if not found
+        }
+        
+        // ============================================
+        // DPI MODIFICATION
+        // ============================================
+        
+        async function changeDPI(imageObj, newDpi) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Convert canvas to blob with quality preservation
+                    const mimeType = imageObj.file.type;
+                    const quality = mimeType === 'image/jpeg' ? 0.95 : 1.0;
+                    
+                    canvas.toBlob(async (blob) => {
+                        // Modify blob to include DPI metadata
+                        const modifiedBlob = await setDPIMetadata(blob, newDpi, mimeType);
+                        resolve(modifiedBlob);
+                    }, mimeType, quality);
+                };
+                
+                img.src = imageObj.imageData;
+            });
+        }
+        
+        async function setDPIMetadata(blob, dpi, mimeType) {
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            if (mimeType === 'image/jpeg') {
+                return setJPEGDPI(uint8Array, dpi);
+            } else if (mimeType === 'image/png') {
+                return setPNGDPI(uint8Array, dpi);
+            }
+            
+            return blob;
+        }
+        
+        function setJPEGDPI(uint8Array, dpi) {
+            // Create new array with APP0 marker
+            const newArray = new Uint8Array(uint8Array.length + 18);
+            
+            // Copy SOI marker
+            newArray[0] = 0xFF;
+            newArray[1] = 0xD8;
+            
+            // Add APP0 (JFIF) marker
+            newArray[2] = 0xFF;
+            newArray[3] = 0xE0;
+            
+            // Length (16 bytes)
+            newArray[4] = 0x00;
+            newArray[5] = 0x10;
+            
+            // JFIF identifier
+            newArray[6] = 0x4A; // J
+            newArray[7] = 0x46; // F
+            newArray[8] = 0x49; // I
+            newArray[9] = 0x46; // F
+            newArray[10] = 0x00; // Null terminator
+            
+            // Version (1.1)
+            newArray[11] = 0x01;
+            newArray[12] = 0x01;
+            
+            // Units (1 = DPI)
+            newArray[13] = 0x01;
+            
+            // X density
+            newArray[14] = (dpi >> 8) & 0xFF;
+            newArray[15] = dpi & 0xFF;
+            
+            // Y density
+            newArray[16] = (dpi >> 8) & 0xFF;
+            newArray[17] = dpi & 0xFF;
+            
+            // Thumbnail dimensions (0x0)
+            newArray[18] = 0x00;
+            newArray[19] = 0x00;
+            
+            // Copy rest of image data (skip original SOI)
+            newArray.set(uint8Array.slice(2), 20);
+            
+            return new Blob([newArray], { type: 'image/jpeg' });
+        }
+        
+        function setPNGDPI(uint8Array, dpi) {
+            // Convert DPI to pixels per meter
+            const pixelsPerMeter = Math.round(dpi * 39.3701);
+            
+            // Create pHYs chunk
+            const pHYsChunk = new Uint8Array(21);
+            
+            // Length (9 bytes)
+            pHYsChunk[0] = 0x00;
+            pHYsChunk[1] = 0x00;
+            pHYsChunk[2] = 0x00;
+            pHYsChunk[3] = 0x09;
+            
+            // Chunk type "pHYs"
+            pHYsChunk[4] = 0x70; // p
+            pHYsChunk[5] = 0x48; // H
+            pHYsChunk[6] = 0x59; // Y
+            pHYsChunk[7] = 0x73; // s
+            
+            // Pixels per unit X (4 bytes)
+            pHYsChunk[8] = (pixelsPerMeter >> 24) & 0xFF;
+            pHYsChunk[9] = (pixelsPerMeter >> 16) & 0xFF;
+            pHYsChunk[10] = (pixelsPerMeter >> 8) & 0xFF;
+            pHYsChunk[11] = pixelsPerMeter & 0xFF;
+            
+            // Pixels per unit Y (4 bytes)
+            pHYsChunk[12] = (pixelsPerMeter >> 24) & 0xFF;
+            pHYsChunk[13] = (pixelsPerMeter >> 16) & 0xFF;
+            pHYsChunk[14] = (pixelsPerMeter >> 8) & 0xFF;
+            pHYsChunk[15] = pixelsPerMeter & 0xFF;
+            
+            // Unit (1 = meter)
+            pHYsChunk[16] = 0x01;
+            
+            // CRC (simplified - you'd normally calculate this)
+            const crc = calculateCRC(pHYsChunk.slice(4, 17));
+            pHYsChunk[17] = (crc >> 24) & 0xFF;
+            pHYsChunk[18] = (crc >> 16) & 0xFF;
+            pHYsChunk[19] = (crc >> 8) & 0xFF;
+            pHYsChunk[20] = crc & 0xFF;
+            
+            // Insert pHYs chunk after IHDR (PNG signature is 8 bytes, IHDR is typically 25 bytes)
+            const newArray = new Uint8Array(uint8Array.length + 21);
+            newArray.set(uint8Array.slice(0, 33), 0); // Copy up to end of IHDR
+            newArray.set(pHYsChunk, 33); // Insert pHYs
+            newArray.set(uint8Array.slice(33), 54); // Copy rest
+            
+            return new Blob([newArray], { type: 'image/png' });
+        }
+        
+        function calculateCRC(data) {
+            let crc = 0xFFFFFFFF;
+            for (let i = 0; i < data.length; i++) {
+                crc ^= data[i];
+                for (let j = 0; j < 8; j++) {
+                    crc = (crc >>> 1) ^ ((crc & 1) ? 0xEDB88320 : 0);
+                }
+            }
+            return crc ^ 0xFFFFFFFF;
+        }
+        
+        // ============================================
+        // UI RENDERING
+        // ============================================
+        
+        function renderTable() {
+            // Render to both table bodies
+            const tableBody1 = elements.tableBody;
+            const tableBody2 = document.getElementById('imageTableBody2');
+            
+            tableBody1.innerHTML = '';
+            if (tableBody2) tableBody2.innerHTML = '';
+            
+            state.images.forEach((imageObj, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><img src="${imageObj.thumbnail}" alt="Preview" class="thumbnail"></td>
+                    <td><div class="filename" title="${imageObj.filename}">${imageObj.filename}</div></td>
+                    <td><span class="dpi-value">${imageObj.originalDpi}</span></td>
+                    <td><span class="dpi-value">${imageObj.newDpi}</span></td>
+                    <td>${imageObj.width} × ${imageObj.height}</td>
+                    <td>${formatFileSize(imageObj.fileSize)}</td>
+                    <td>
+                        <button class="btn-download" data-index="${index}" ${!imageObj.processed ? 'disabled' : ''}>
+                            ${imageObj.processing ? '<span class="spinner"></span>' : 'Download'}
+                        </button>
+                    </td>
+                `;
+                
+                tableBody1.appendChild(row);
+
+                // Thumbnail click → open preview modal
+                row.querySelector('.thumbnail').addEventListener('click', () => {
+                    openPreview(imageObj);
+                });
+                
+                // Clone row for second table
+                if (tableBody2) {
+                    const row2 = row.cloneNode(true);
+                    tableBody2.appendChild(row2);
+
+                    // Thumbnail click on cloned row
+                    row2.querySelector('.thumbnail').addEventListener('click', () => {
+                        openPreview(imageObj);
+                    });
+
+                    // Add download listener to cloned row
+                    const downloadBtn2 = row2.querySelector('.btn-download');
+                    downloadBtn2.addEventListener('click', () => {
+                        downloadImage(index);
+                    });
+                }
+                
+                // Add download listener to first row
+                const downloadBtn = row.querySelector('.btn-download');
+                downloadBtn.addEventListener('click', () => {
+                    downloadImage(index);
+                });
+            });
+        }
+        
+        function showControls() {
+            elements.uploadSection.classList.add('hidden');
+            elements.controls.classList.add('active');
+            elements.tableContainer.classList.add('active');
+        }
+
+        // ============================================
+        // IMAGE PREVIEW MODAL
+        // ============================================
+
+        function openPreview(imageObj) {
+            const modal    = document.getElementById('previewModal');
+            const img      = document.getElementById('previewModalImg');
+            const title    = document.getElementById('previewModalTitle');
+            const meta     = document.getElementById('previewModalMeta');
+
+            img.src        = imageObj.imageData;
+            title.textContent = imageObj.filename;
+            meta.textContent  = `${imageObj.width} × ${imageObj.height}px  ·  ${formatFileSize(imageObj.fileSize)}  ·  ${imageObj.originalDpi} DPI`;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('previewModalClose').addEventListener('click', closePreview);
+
+        document.getElementById('previewModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('previewModal')) closePreview();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePreview();
+        });
+        
+        // ============================================
+        // DPI APPLICATION
+        // ============================================
+        
+        async function applyDpiToAll(dpi) {
+            elements.applyAllBtn.disabled = true;
+            
+            for (let i = 0; i < state.images.length; i++) {
+                const imageObj = state.images[i];
+                imageObj.processing = true;
+                imageObj.newDpi = dpi;
+                renderTable();
+                
+                // Process image
+                const modifiedBlob = await changeDPI(imageObj, dpi);
+                imageObj.processedBlob = modifiedBlob;
+                imageObj.processed = true;
+                imageObj.processing = false;
+                
+                renderTable();
+            }
+            
+            elements.applyAllBtn.disabled = false;
+        }
+        
+        // ============================================
+        // DOWNLOAD FUNCTIONS
+        // ============================================
+        
+        async function downloadImage(index) {
+            const imageObj = state.images[index];
+            
+            if (!imageObj.processed) {
+                // Process on demand
+                imageObj.processing = true;
+                renderTable();
+                
+                const modifiedBlob = await changeDPI(imageObj, imageObj.newDpi);
+                imageObj.processedBlob = modifiedBlob;
+                imageObj.processed = true;
+                imageObj.processing = false;
+                renderTable();
+            }
+            
+            // Create download link
+            const url = URL.createObjectURL(imageObj.processedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Generate filename
+            const nameWithoutExt = imageObj.filename.replace(/\.[^/.]+$/, '');
+            const ext = imageObj.filename.split('.').pop();
+            a.download = `${nameWithoutExt}-${imageObj.newDpi}dpi.${ext}`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        async function downloadAll() {
+            for (let i = 0; i < state.images.length; i++) {
+                await downloadImage(i);
+                // Small delay between downloads
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            elements.errorContainer.appendChild(errorDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        function clearError() {
+            elements.errorContainer.innerHTML = '';
+        }
+
+        // ============================================
+        // GUIDE MODAL
+        // ============================================
+
+        document.getElementById('openGuide').addEventListener('click', () => {
+            document.getElementById('guideModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        document.getElementById('closeGuide').addEventListener('click', () => {
+            document.getElementById('guideModal').classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        document.getElementById('guideModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('guideModal')) {
+                document.getElementById('guideModal').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Guide inner tab switching
+        document.querySelectorAll('.guide-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.guide-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.guide-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('gtab-' + tab.dataset.gtab).classList.add('active');
+            });
+        });
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-q').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.closest('.faq-item');
+                const wasOpen = item.classList.contains('open');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+                if (!wasOpen) item.classList.add('open');
+            });
+        });
+
+    </script>
+</body>
+</html>

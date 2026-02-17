@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelTools – Free Browser-Based Image Utilities</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* ─────────────────────────────────────────
+           TOKENS  (same palette as the DPI webapp)
+        ───────────────────────────────────────── */
+        :root {
+            --primary:      #1a1a1a;
+            --primary-h:    #000000;
+            --bg:           #FFFFFF;
+            --bg-soft:      #F5F5F0;
+            --border-main:  #2d2d2d;
+            --border-light: #DDDDD8;
+            --text:         #111111;
+            --text-sub:     #3a3a3a;
+            --text-muted:   #7a7a72;
+
+            --font-body: 'Poppins', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --radius-sm:  6px;
+            --radius-md:  10px;
+            --radius-lg:  16px;
+            --radius-xl:  24px;
+
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.07);
+            --shadow-lift: 0 12px 40px rgba(0,0,0,0.13);
+        }
+
+        /* ─── RESET ─── */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-soft);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─────────────────────────────────────────
+           LAYOUT HELPERS
+        ───────────────────────────────────────── */
+        .wrap {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        section { padding: 6rem 0; }
+
+        /* ─────────────────────────────────────────
+           HEADER / NAV
+        ───────────────────────────────────────── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .nav-logo-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.03em;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color .2s;
+        }
+
+        .nav-links a:hover { color: var(--text); }
+
+        .nav-cta {
+            background: var(--primary);
+            color: #fff !important;
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600 !important;
+            transition: background .2s, transform .2s !important;
+        }
+
+        .nav-cta:hover {
+            background: var(--primary-h) !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-hamburger {
+            display: none;
+            background: none;
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 0.4rem 0.6rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        /* ─────────────────────────────────────────
+           HERO
+        ───────────────────────────────────────── */
+        .hero {
+            background: var(--bg);
+            padding: 8rem 0 6rem;
+            border-bottom: 1px solid var(--border-light);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* subtle dot-grid texture */
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, #c8c8be 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--bg-soft);
+            border: 1.5px solid var(--border-light);
+            border-radius: 999px;
+            padding: 0.35rem 1rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            animation: fadeUp .6s ease both;
+        }
+
+        .hero-badge-dot {
+            width: 7px; height: 7px;
+            background: #4caf50;
+            border-radius: 50%;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            line-height: 1.15;
+            max-width: 760px;
+            margin: 0 auto 1.5rem;
+            animation: fadeUp .6s .1s ease both;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--text-muted);
+        }
+
+        .hero-sub {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto 2.5rem;
+            font-weight: 400;
+            animation: fadeUp .6s .2s ease both;
+        }
+
+        .hero-sub em {
+            font-style: italic;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeUp .6s .3s ease both;
+        }
+
+        .btn-solid {
+            background: var(--primary);
+            color: #fff;
+            padding: 0.875rem 2rem;
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background .25s, transform .2s, box-shadow .25s;
+            box-shadow: 0 4px 14px rgba(0,0,0,.18);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-solid:hover {
+            background: var(--primary-h);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.22);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            padding: 0.875rem 2rem;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-main);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .25s, transform .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-soft);
+            transform: translateY(-2px);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 4rem;
+            animation: fadeUp .6s .45s ease both;
+        }
+
+        .hero-stat-val {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text);
+        }
+
+        .hero-stat-lbl {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 500;
+            margin-top: 0.1rem;
+        }
+
+        /* ─────────────────────────────────────────
+           TOOLS SECTION
+        ───────────────────────────────────────── */
+        .tools { background: var(--bg-soft); }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .section-title {
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 480px;
+        }
+
+        .section-head { margin-bottom: 3.5rem; }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .tool-card {
+            background: var(--bg);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            transition: border-color .25s, box-shadow .25s, transform .25s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tool-card:hover {
+            border-color: var(--border-main);
+            box-shadow: var(--shadow-lift);
+            transform: translateY(-4px);
+        }
+
+        .tool-icon-wrap {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-soft);
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+
+        .tool-tag {
+            display: inline-block;
+            background: var(--bg-soft);
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .tool-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+
+        .tool-desc {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            line-height: 1.7;
+        }
+
+        .tool-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .tool-features li {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+        }
+
+        .tool-features li::before {
+            content: '✓';
+            color: var(--text);
+            font-weight: 700;
+            font-family: var(--font-body);
+        }
+
+        .tool-cta {
+            margin-top: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .2s, transform .2s;
+            align-self: flex-start;
+        }
+
+        .tool-cta:hover {
+            background: var(--primary-h);
+            transform: translateY(-1px);
+        }
+
+        .tool-cta-arrow { transition: transform .2s; }
+        .tool-card:hover .tool-cta-arrow { transform: translateX(4px); }
+
+        /* ─────────────────────────────────────────
+           WHY SECTION
+        ───────────────────────────────────────── */
+        .why { background: var(--bg); border-top: 1px solid var(--border-light); }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-top: 3.5rem;
+        }
+
+        .why-card {
+            background: var(--bg-soft);
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            transition: border-color .2s, transform .2s;
+        }
+
+        .why-card:hover {
+            border-color: var(--border-main);
+            transform: translateY(-2px);
+        }
+
+        .why-icon {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .why-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .why-desc {
+            font-size: 0.83rem;
+            color: var(--text-sub);
+            line-height: 1.7;
+        }
+
+        /* ─────────────────────────────────────────
+           HOW TO USE SECTION
+        ───────────────────────────────────────── */
+        .howto { background: var(--bg-soft); border-top: 1px solid var(--border-light); }
+
+        .howto-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: 3rem;
+        }
+
+        .howto-tab {
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            padding: 0.75rem 1.5rem;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color .2s, border-color .2s;
+        }
+
+        .howto-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .howto-tab:hover { color: var(--primary); }
+
+        .howto-panel { display: none; }
+        .howto-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+
+        .steps-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .step {
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            min-width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-content h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .step-content p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.65;
+        }
+
+        .howto-aside {
+            background: var(--bg);
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+        }
+
+        .howto-aside h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--text);
+        }
+
+        .tip-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tip-list li {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            display: flex;
+            gap: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .tip-dot {
+            min-width: 6px;
+            height: 6px;
+            background: var(--border-main);
+            border-radius: 50%;
+            margin-top: 0.55rem;
+            flex-shrink: 0;
+        }
+
+        .howto-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.875rem 1.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .2s, transform .2s;
+        }
+
+        .howto-link:hover { background: var(--primary-h); transform: translateY(-2px); }
+
+        /* ─────────────────────────────────────────
+           PRIVACY STRIP
+        ───────────────────────────────────────── */
+        .privacy-strip {
+            background: var(--primary);
+            padding: 4rem 0;
+        }
+
+        .privacy-inner {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .privacy-text { flex: 1; min-width: 280px; }
+
+        .privacy-text h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .privacy-text p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,.65);
+            line-height: 1.7;
+        }
+
+        .privacy-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .privacy-badge {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 999px;
+            padding: 0.45rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255,255,255,.85);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ─────────────────────────────────────────
+           FAQ SECTION
+        ───────────────────────────────────────── */
+        .faq { background: var(--bg); border-top: 1px solid var(--border-light); }
+
+        .faq-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 5rem;
+            align-items: start;
+        }
+
+        .faq-sidebar h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        .faq-sidebar p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .faq-item {
+            border-bottom: 1.5px solid var(--border-light);
+        }
+
+        .faq-q {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 1.25rem 0;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            transition: color .2s;
+        }
+
+        .faq-q:hover { color: var(--primary-h); }
+
+        .faq-icon {
+            width: 24px;
+            height: 24px;
+            border: 1.5px solid var(--border-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            transition: background .2s, border-color .2s, transform .25s;
+        }
+
+        .faq-item.open .faq-icon {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            transform: rotate(45deg);
+        }
+
+        .faq-a {
+            font-size: 0.875rem;
+            color: var(--text-sub);
+            line-height: 1.75;
+            padding-bottom: 1.25rem;
+            display: none;
+        }
+
+        .faq-item.open .faq-a { display: block; }
+
+        /* ─────────────────────────────────────────
+           FOOTER
+        ───────────────────────────────────────── */
+        footer {
+            background: var(--bg-soft);
+            border-top: 1.5px solid var(--border-light);
+            padding: 4rem 0 2.5rem;
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+            line-height: 1.7;
+            max-width: 280px;
+        }
+
+        .footer-col h4 {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-sub);
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .footer-links a {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .footer-links a:hover { color: var(--text); }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border-light);
+            padding-top: 1.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-copy {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .footer-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .footer-badge-dot {
+            width: 6px; height: 6px;
+            background: #4caf50;
+            border-radius: 50%;
+        }
+
+        /* ─────────────────────────────────────────
+           ANIMATIONS
+        ───────────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scroll-triggered reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity .6s ease, transform .6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* stagger children */
+        .reveal-stagger > * {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+        .reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay:.05s; }
+        .reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay:.15s; }
+        .reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay:.25s; }
+        .reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay:.35s; }
+        .reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay:.45s; }
+        .reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:none; transition-delay:.55s; }
+
+        /* ─────────────────────────────────────────
+           RESPONSIVE
+        ───────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .tools-grid { grid-template-columns: 1fr; }
+            .why-grid { grid-template-columns: repeat(2, 1fr); }
+            .faq-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+            .howto-panel.active { grid-template-columns: 1fr; gap: 2rem; }
+        }
+
+        @media (max-width: 640px) {
+            section { padding: 4rem 0; }
+            .wrap { padding: 0 1.25rem; }
+            .hero { padding: 5rem 0 4rem; }
+            .hero-stats { gap: 1.75rem; }
+            .why-grid { grid-template-columns: 1fr; }
+            .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+            .nav-links { display: none; }
+            .nav-hamburger { display: block; }
+            .privacy-inner { flex-direction: column; gap: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     HEADER
+═══════════════════════════════════════ -->
+<header>
+    <nav>
+        <a href="index.html" class="nav-logo">
+            <div class="nav-logo-icon">🖼</div>
+            <span class="nav-logo-text">PixelTools</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#why">Why Us</a></li>
+            <li><a href="#how-to-use">How to Use</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="dpi.html" class="nav-cta">Open DPI Tool ↗</a></li>
+        </ul>
+
+        <button class="nav-hamburger" onclick="document.querySelector('.nav-links').style.display = document.querySelector('.nav-links').style.display === 'flex' ? 'none' : 'flex'">☰</button>
+    </nav>
+</header>
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<section class="hero">
+    <div class="wrap">
+        <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Free · Private · No Upload Required
+        </div>
+
+        <h1>
+            Professional Image Tools
+            <br><em>Right in Your Browser</em>
+        </h1>
+
+        <p class="hero-sub">
+            Change DPI, compress images — with zero compromise on privacy.
+            Everything runs locally. <em>No servers. No sign-up. No nonsense.</em>
+        </p>
+
+        <div class="hero-actions">
+            <a href="dpi.html" class="btn-solid">📐 DPI Changer ↗</a>
+            <a href="image.html" class="btn-outline">🗜 Compress Image ↗</a>
+        </div>
+
+        <div class="hero-stats">
+            <div>
+                <div class="hero-stat-val">100%</div>
+                <div class="hero-stat-lbl">Browser-Based</div>
+            </div>
+            <div>
+                <div class="hero-stat-val">0KB</div>
+                <div class="hero-stat-lbl">Data Uploaded</div>
+            </div>
+            <div>
+                <div class="hero-stat-val">Free</div>
+                <div class="hero-stat-lbl">Always & Forever</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TOOLS
+═══════════════════════════════════════ -->
+<section class="tools" id="tools">
+    <div class="wrap">
+        <div class="section-head reveal">
+            <div class="section-label">Our Tools</div>
+            <h2 class="section-title">Two tools. Every image task handled.</h2>
+            <p class="section-sub">Precision-built utilities for photographers, designers, and developers who care about quality.</p>
+        </div>
+
+        <div class="tools-grid reveal-stagger">
+
+            <!-- DPI CHANGER -->
+            <div class="tool-card">
+                <div>
+                    <span class="tool-tag">Metadata Editor</span>
+                </div>
+                <div class="tool-icon-wrap">📐</div>
+                <div class="tool-name">DPI Changer</div>
+                <p class="tool-desc">
+                    Update the DPI (dots per inch) metadata of your JPG and PNG images instantly — without resampling, resizing, or losing a single pixel of quality.
+                </p>
+                <ul class="tool-features">
+                    <li>Reads & displays original DPI</li>
+                    <li>72, 96, 150, 300 DPI presets</li>
+                    <li>Batch process multiple images</li>
+                    <li>Pixel dimensions stay identical</li>
+                    <li>Download with custom filename</li>
+                </ul>
+                <a href="dpi.html" class="tool-cta">
+                    Open DPI Changer <span class="tool-cta-arrow">→</span>
+                </a>
+            </div>
+
+            <!-- IMAGE COMPRESSOR -->
+            <div class="tool-card">
+                <div>
+                    <span class="tool-tag">Compression</span>
+                </div>
+                <div class="tool-icon-wrap">🗜</div>
+                <div class="tool-name">Image Compressor</div>
+                <p class="tool-desc">
+                    Compress your images to an exact target file size using a precision binary-search algorithm. Set dimensions in pixels, MM, or CM. Crop and trim with ease.
+                </p>
+                <ul class="tool-features">
+                    <li>Compress to exact KB target</li>
+                    <li>Set max width & height</li>
+                    <li>Pixels, MM, CM unit switching</li>
+                    <li>Batch up to 50 images at once</li>
+                    <li>Built-in crop tool</li>
+                </ul>
+                <a href="image.html" class="tool-cta">
+                    Open Compressor <span class="tool-cta-arrow">→</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     WHY
+═══════════════════════════════════════ -->
+<section class="why" id="why">
+    <div class="wrap">
+        <div class="section-head reveal">
+            <div class="section-label">Why PixelTools</div>
+            <h2 class="section-title">Built for people who value<br>privacy & precision.</h2>
+        </div>
+
+        <div class="why-grid reveal-stagger">
+            <div class="why-card">
+                <div class="why-icon">🔒</div>
+                <div class="why-title">100% Private</div>
+                <div class="why-desc">Your images never leave your device. All processing runs locally using browser APIs — no uploads, no servers, no data collection. Ever.</div>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">⚡</div>
+                <div class="why-title">Instant Results</div>
+                <div class="why-desc">No upload wait times. DPI changes and compressions happen in milliseconds using your own hardware for maximum speed.</div>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">🎯</div>
+                <div class="why-title">Precision Output</div>
+                <div class="why-desc">Our binary-search compression algorithm hits your exact target file size. DPI metadata is updated surgically — no resampling, no quality loss.</div>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">📦</div>
+                <div class="why-title">Batch Processing</div>
+                <div class="why-desc">Process dozens of images at once with a single click. All images get the same settings applied consistently across the batch.</div>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">🆓</div>
+                <div class="why-title">Completely Free</div>
+                <div class="why-desc">No account, no subscription, no hidden fees, no watermarks. Open the page and start working — that's the entire onboarding.</div>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">📱</div>
+                <div class="why-title">Works Everywhere</div>
+                <div class="why-desc">Fully responsive and touch-friendly. Works on Chrome, Firefox, Edge, Safari — desktop, tablet, or mobile. No app needed.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     HOW TO USE
+═══════════════════════════════════════ -->
+<section class="howto" id="how-to-use">
+    <div class="wrap">
+        <div class="section-head reveal">
+            <div class="section-label">How It Works</div>
+            <h2 class="section-title">Up and running in seconds.</h2>
+            <p class="section-sub">Both tools follow the same dead-simple workflow — no learning curve required.</p>
+        </div>
+
+        <div class="howto-tabs reveal">
+            <button class="howto-tab active" data-tab="dpi">📐 DPI Changer</button>
+            <button class="howto-tab" data-tab="compress">🗜 Image Compressor</button>
+        </div>
+
+        <!-- DPI HOW TO -->
+        <div class="howto-panel active" id="htab-dpi">
+            <ol class="steps-list">
+                <li class="step">
+                    <span class="step-num">1</span>
+                    <div class="step-content">
+                        <h4>Upload Your Images</h4>
+                        <p>Click the upload zone or drag & drop JPG or PNG files. Multiple files are supported — process them all at once.</p>
+                    </div>
+                </li>
+                <li class="step">
+                    <span class="step-num">2</span>
+                    <div class="step-content">
+                        <h4>Check Current DPI</h4>
+                        <p>The table instantly shows the filename, current DPI, pixel dimensions, and file size for every uploaded image.</p>
+                    </div>
+                </li>
+                <li class="step">
+                    <span class="step-num">3</span>
+                    <div class="step-content">
+                        <h4>Set Your Target DPI</h4>
+                        <p>Type a custom DPI value or click a quick preset: 72 (screen), 96 (standard), 150, or 300 DPI (print).</p>
+                    </div>
+                </li>
+                <li class="step">
+                    <span class="step-num">4</span>
+                    <div class="step-content">
+                        <h4>Apply & Download</h4>
+                        <p>Click "Apply to All" to update all images at once. Then download individually or use "Download All" for a batch save.</p>
+                    </div>
+                </li>
+            </ol>
+
+            <div class="howto-aside">
+                <h4>💡 DPI Tips</h4>
+                <ul class="tip-list">
+                    <li><span class="tip-dot"></span>DPI change is metadata-only — pixel dimensions and visual quality are completely untouched.</li>
+                    <li><span class="tip-dot"></span>Use 300 DPI for professional print, 72–96 DPI for web and screen.</li>
+                    <li><span class="tip-dot"></span>Click any thumbnail to preview the full-size image before downloading.</li>
+                    <li><span class="tip-dot"></span>Files up to 69 MB are supported — no artificial limitations.</li>
+                </ul>
+                <a href="dpi.html" class="howto-link">Open DPI Changer →</a>
+            </div>
+        </div>
+
+        <!-- COMPRESS HOW TO -->
+        <div class="howto-panel" id="htab-compress">
+            <ol class="steps-list">
+                <li class="step">
+                    <span class="step-num">1</span>
+                    <div class="step-content">
+                        <h4>Upload Your Images</h4>
+                        <p>Click the upload zone or drag & drop up to 50 JPG, PNG, or WebP images at once — up to 100 MB each.</p>
+                    </div>
+                </li>
+                <li class="step">
+                    <span class="step-num">2</span>
+                    <div class="step-content">
+                        <h4>Set Target File Size</h4>
+                        <p>Enter a target size in KB (default 50 KB). You can also set max width and height to constrain the output dimensions.</p>
+                    </div>
+                </li>
+                <li class="step">
+                    <span class="step-num">3</span>
+                    <div class="step-content">
+                        <h4>Choose Dimensions Unit</h4>
+                        <p>Switch between Pixels, MM, or CM for the max width/height fields. The tool auto-converts at 96 DPI.</p>
+                    </div>
+                </li>
+                <li class="step">
+                    <span class="step-num">4</span>
+                    <div class="step-content">
+                        <h4>Compress & Download</h4>
+                        <p>Click Compress. A precision binary search finds the optimal JPEG quality level to match your target. Then download your result.</p>
+                    </div>
+                </li>
+            </ol>
+
+            <div class="howto-aside">
+                <h4>💡 Compression Tips</h4>
+                <ul class="tip-list">
+                    <li><span class="tip-dot"></span>For very small targets (under 30 KB), set a Max Width to help reduce file size further.</li>
+                    <li><span class="tip-dot"></span>PNG files are converted to JPEG during compression for maximum size reduction.</li>
+                    <li><span class="tip-dot"></span>Use the built-in Crop tab to trim your image before compressing.</li>
+                    <li><span class="tip-dot"></span>Results are typically within 1–3% of your target file size.</li>
+                </ul>
+                <a href="image.html" class="howto-link">Open Compressor →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PRIVACY STRIP
+═══════════════════════════════════════ -->
+<div class="privacy-strip">
+    <div class="wrap">
+        <div class="privacy-inner">
+            <div class="privacy-text">
+                <h2>Your images stay on your device.</h2>
+                <p>We don't have a server that receives your files. There's nothing to hack, nothing to leak, and nothing stored about you or your images. It's just your browser doing the work.</p>
+            </div>
+            <div class="privacy-badges">
+                <span class="privacy-badge">🔒 No Uploads</span>
+                <span class="privacy-badge">🚫 No Tracking</span>
+                <span class="privacy-badge">☁️ No Cloud</span>
+                <span class="privacy-badge">🍪 No Cookies</span>
+                <span class="privacy-badge">📋 No Account</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FAQ
+═══════════════════════════════════════ -->
+<section class="faq" id="faq">
+    <div class="wrap">
+        <div class="faq-layout">
+
+            <div class="faq-sidebar reveal">
+                <div class="section-label">FAQ</div>
+                <h2>Questions &<br>Answers</h2>
+                <p style="margin-top:.75rem">Everything you need to know about PixelTools and how it handles your images.</p>
+            </div>
+
+            <div class="faq-list reveal">
+
+                <div class="faq-item">
+                    <button class="faq-q">Are my images ever sent to a server? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">No, never. All processing — DPI editing, compression, cropping — happens entirely inside your browser using the Canvas API and JavaScript. Your files never leave your device and no data is transmitted anywhere.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">What's the difference between DPI and image size? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">Image size refers to the pixel dimensions (e.g. 1920×1080). DPI is metadata that tells software how large the image should print. A 1920px image at 96 DPI prints at 20 inches wide; at 300 DPI it prints at 6.4 inches — same image, different output size. The DPI Changer updates only this metadata tag, leaving pixels untouched.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">Will changing DPI affect image quality? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">Not at all. The DPI Changer only writes a new value into the metadata header of your file. Every pixel remains identical. The file size changes by only a few bytes at most.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">What DPI should I use for printing? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">300 DPI is the professional standard for high-quality print (brochures, photos, business cards). 150 DPI works for large-format prints viewed from a distance. 72–96 DPI is fine for screen/web display only.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">What file formats are supported? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">The DPI Changer supports JPG and PNG files up to 69 MB each. The Image Compressor supports JPG, PNG, and WebP up to 100 MB each. Both tools process files entirely in your browser.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">How accurate is the image compression? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">Very accurate. The compressor uses a 14-step binary search across JPEG quality levels to land as close to your target file size as possible — typically within 1–3% of the target.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">Can I process multiple images at once? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">Yes. The DPI Changer supports unlimited batch uploads — upload as many files as you need and apply the same DPI to all with one click. The Image Compressor supports up to 50 images in a single batch.</div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-q">Is PixelTools really free? <span class="faq-icon">+</span></button>
+                    <div class="faq-a">Completely free. No account required, no subscription, no watermarks on output files, no hidden limits. Just open a tool and use it.</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════ -->
+<footer>
+    <div class="wrap">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="index.html" class="nav-logo" style="text-decoration:none;">
+                    <div class="nav-logo-icon">🖼</div>
+                    <span class="nav-logo-text">PixelTools</span>
+                </a>
+                <p>Free, privacy-first image utilities that run entirely in your browser. No accounts, no uploads, no nonsense.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Tools</h4>
+                <ul class="footer-links">
+                    <li><a href="dpi.html">DPI Changer</a></li>
+                    <li><a href="image.html">Image Compressor</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Learn</h4>
+                <ul class="footer-links">
+                    <li><a href="#why">Why PixelTools</a></li>
+                    <li><a href="#how-to-use">How to Use</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="footer-copy">© 2025 PixelTools. All processing happens in your browser — your images never leave your device.</p>
+            <div class="footer-badge">
+                <span class="footer-badge-dot"></span>
+                100% browser-based · zero server uploads
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    /* ── How to Use tab switching ── */
+    document.querySelectorAll('.howto-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.howto-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.howto-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('htab-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    /* ── FAQ accordion ── */
+    document.querySelectorAll('.faq-q').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.closest('.faq-item');
+            const wasOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+            if (!wasOpen) item.classList.add('open');
+        });
+    });
+
+    /* ── Scroll reveal ── */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
